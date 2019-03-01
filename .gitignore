@@ -1,0 +1,13 @@
+# macOS
+.DS_Store
+
+# development bin and cfg
+graphcms
+config.yml
+
+# IDE
+.idea/
+
+# vendor
+vendor/
+_vendor-*/
