@@ -1,17 +1,18 @@
 package types
 
-type fieldType string
+type FieldType string
 
-func (f fieldType) GetTypeName() string {
+func (f FieldType) GetTypeName() string {
 	return string(f)
 }
 
 var (
-	FieldTypeString   fieldType = "string"
-	FieldTypeInt      fieldType = "int"
-	FieldTypeDate     fieldType = "date"
-	FieldTypeDateBool fieldType = "bool"
-	FieldTypeRichText fieldType = "rich_text"
-	FieldTypeMedia    fieldType = "media"
-	FieldTypeTimeDate fieldType = "time_date"
+	FieldTypeString    FieldType = "STRING"
+	FieldTypeInt       FieldType = "INT"
+	FieldTypeFloat     FieldType = "FLOAT"
+	FieldTypeBool      FieldType = "BOOL"
+	FieldTypeDateTime  FieldType = "DATETIME"
+	FieldTypeRichText  FieldType = "RICH_TEXT"
+	FieldTypeMedia     FieldType = "MEDIA"
+	FieldTypeRepeating FieldType = "REPEATING"
 )

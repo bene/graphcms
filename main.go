@@ -3,78 +3,48 @@ package main
 import (
 	"github.com/bene/graphcms/logic"
 	"github.com/bene/graphcms/logic/types"
-	"github.com/google/uuid"
-	"github.com/labstack/echo"
+	"github.com/graphql-go/handler"
 	"log"
+	"net/http"
 )
 
 func main() {
-	e := echo.New()
 
-	e.GET("/", func(context echo.Context) error {
+	l, err := logic.NewLogic()
+	if err != nil {
+		log.Panic(err)
+	}
 
-		project, err := logic.CreateProject("example-1", uuid.New())
-		if err != nil {
-			return err
-		}
-
-		project.Models = []types.Model{
-			{
-				Name:        "article",
-				DisplayName: "Article",
-				Fields: []types.Field{
-					{
-						Name:        "cover_image",
-						DisplayName: "Cover Image",
-						Type:        types.FieldTypeMedia,
-					},
-					{
-						Name:        "title",
-						DisplayName: "Title",
-						Type:        types.FieldTypeString,
-					},
-					{
-						Name:        "author",
-						DisplayName: "Author",
-						Type:        types.FieldTypeString,
-					},
-					{
-						Name:        "content",
-						DisplayName: "Content",
-						Type:        types.FieldTypeString,
-					},
-				},
-			},
-			{
-				Name:        "event",
-				DisplayName: "Event",
-				Fields: []types.Field{
-					{
-						Name:        "title",
-						DisplayName: "Title",
-						Type:        types.FieldTypeString,
-					},
-					{
-						Name:        "start",
-						DisplayName: "Start",
-						Type:        types.FieldTypeTimeDate,
-					},
-					{
-						Name:        "end",
-						DisplayName: "End",
-						Type:        types.FieldTypeTimeDate,
-					},
-					{
-						Name:        "location",
-						DisplayName: "Location",
-						Type:        types.FieldTypeTimeDate,
-					},
-				},
-			},
-		}
-
-		return context.JSON(200, project)
+	h := handler.New(&handler.Config{
+		Schema:   l.GetSchema(),
+		Pretty:   true,
+		GraphiQL: true,
 	})
 
-	log.Fatalln(e.Start(":2000"))
+	l.CreateMask(types.Mask{
+		Name:        "page",
+		DisplayName: "Page",
+		Description: "Pages are the main components of an website.",
+		Fields: []types.Field{
+			{Name: "name", DisplayName: "Name", Description: "Name of the page.", UseAsTitle: true, IsUnique: true, IsRequired: true, Localize: true, Type: types.FieldTypeString},
+			{Name: "no_index", DisplayName: "No Index", Description: "Hides from search engines", UseAsTitle: false, IsUnique: false, IsRequired: false, Localize: false, Type: types.FieldTypeBool},
+			{Name: "menu_index", DisplayName: "Menu Index", Description: "Hides from search engines", UseAsTitle: false, IsUnique: false, IsRequired: false, Localize: false, Type: types.FieldTypeInt},
+			{Name: "content", DisplayName: "Content", Description: "Page content", UseAsTitle: false, IsUnique: false, IsRequired: true, Localize: true, Type: types.FieldTypeRepeating, Of: types.Mask{
+				Name:        "content",
+				DisplayName: "Content",
+				Description: "Content data",
+				Fields: []types.Field{
+					{Name: "name", DisplayName: "Name", Description: "Name of the data", UseAsTitle: true, IsUnique: false, IsRequired: true, Localize: false, Type: types.FieldTypeString},
+					{Name: "value", DisplayName: "Value", Description: "Value of the data", UseAsTitle: false, IsUnique: false, IsRequired: true, Localize: false, Type: types.FieldTypeString},
+				},
+			}},
+			{Name: "tags", DisplayName: "Tags", Description: "Page tags", UseAsTitle: false, IsUnique: false, IsRequired: false, Localize: true, Type: types.FieldTypeRepeating, Of: types.FieldTypeString},
+		},
+	})
+
+	http.Handle("/graph", h)
+	err = http.ListenAndServe(":4242", nil)
+	if err != nil {
+		log.Panic(err)
+	}
 }
