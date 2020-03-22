@@ -26,27 +26,17 @@ func (l *Logic) UpdateSchema() error {
 
 func (l *Logic) CreateMask(mask types.Mask) error {
 
-	field, err := converter.MaskToSingleField(mask)
+	singleField, err := converter.MaskToSingleField(mask)
 	if err != nil {
 		return err
 	}
-	l.fields[mask.Name] = &field
+	l.fields[mask.Name] = &singleField
 
-	// Add query all
-	l.fields[fmt.Sprintf("%ss", mask.Name)] = &graphql.Field{
-		Type: graphql.NewList(field.Type),
-		Resolve: func(p graphql.ResolveParams) (i interface{}, err error) {
-			return struct{}{}, nil
-		},
+	multipleField, err := converter.MaskToMultipleField(mask)
+	if err != nil {
+		return err
 	}
-
-	// Add query single
-	singleField := field
-	singleField.Args = map[string]*graphql.ArgumentConfig{
-		"id": {
-			Type: graphql.NewNonNull(graphql.ID),
-		},
-	}
+	l.fields[fmt.Sprintf("%ss", mask.Name)] = &multipleField
 
 	// TODO: add connection query
 	// l.fields[fmt.Sprintf("%ssConnection", mask.Name)]

@@ -2,14 +2,6 @@
 
 
 [[projects]]
-  digest = "1:582b704bebaa06b48c29b0cec224a6058a09c86883aaddabde889cd1a5f73e1b"
-  name = "github.com/google/uuid"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "0cd6bf5da1e1c83f8b45653022c74f71af0538a4"
-  version = "v1.1.1"
-
-[[projects]]
   digest = "1:01a3bf7bc37c96547897d253f8437c89cd8e80ea0211ff5f440fbc19f44cd14e"
   name = "github.com/graphql-go/graphql"
   packages = [
@@ -37,13 +29,26 @@
   revision = "c1267356e6539d975e83bbea383c2bbb861dce5b"
   version = "v0.2.3"
 
+[[projects]]
+  digest = "1:9ff22c26414baf7deaf74f2a788fe7b97666048bcbe346c52cfe823442abbdfb"
+  name = "github.com/lib/pq"
+  packages = [
+    ".",
+    "oid",
+    "scram",
+  ]
+  pruneopts = "UT"
+  revision = "99274577be97ac9b1d95a2d61d566dc9b7cc6a54"
+  version = "v1.3.0"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/google/uuid",
     "github.com/graphql-go/graphql",
+    "github.com/graphql-go/graphql/language/ast",
     "github.com/graphql-go/handler",
+    "github.com/lib/pq",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
