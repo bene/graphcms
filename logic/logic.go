@@ -8,13 +8,21 @@ import (
 )
 
 type Logic struct {
-	fields graphql.Fields
-	schema graphql.Schema
+	types          []graphql.Type
+	queryFields    graphql.Fields
+	mutationFields graphql.Fields
+	schema         graphql.Schema
 }
 
 func (l *Logic) UpdateSchema() error {
-	rootQuery := graphql.ObjectConfig{Name: "Query", Fields: l.fields}
-	schemaConfig := graphql.SchemaConfig{Query: graphql.NewObject(rootQuery)}
+	query := graphql.ObjectConfig{Name: "Query", Fields: l.queryFields}
+	mutation := graphql.ObjectConfig{Name: "Mutation", Fields: l.mutationFields}
+	subscription := graphql.ObjectConfig{Name: "Subscription", Fields: l.mutationFields}
+	schemaConfig := graphql.SchemaConfig{
+		Query:        graphql.NewObject(query),
+		Mutation:     graphql.NewObject(mutation),
+		Subscription: graphql.NewObject(subscription),
+	}
 
 	schema, err := graphql.NewSchema(schemaConfig)
 	if err == nil {
@@ -26,20 +34,28 @@ func (l *Logic) UpdateSchema() error {
 
 func (l *Logic) CreateMask(mask types.Mask) error {
 
-	singleField, err := converter.MaskToSingleField(mask)
+	gqObject, err := converter.CreateObject(mask)
 	if err != nil {
 		return err
 	}
-	l.fields[mask.Name] = &singleField
 
-	multipleField, err := converter.MaskToMultipleField(mask)
+	singleField, err := converter.MaskToSingleField(gqObject)
 	if err != nil {
 		return err
 	}
-	l.fields[fmt.Sprintf("%ss", mask.Name)] = &multipleField
+	l.queryFields[mask.Name] = &singleField
 
-	// TODO: add connection query
-	// l.fields[fmt.Sprintf("%ssConnection", mask.Name)]
+	multipleField, err := converter.MaskToMultipleField(gqObject)
+	if err != nil {
+		return err
+	}
+	l.queryFields[fmt.Sprintf("%ss", mask.Name)] = &multipleField
+
+	connectionField, err := converter.MaskToMultipleField(gqObject)
+	if err != nil {
+		return err
+	}
+	l.queryFields[fmt.Sprintf("%ssConnection", mask.Name)] = &connectionField
 
 	return l.UpdateSchema()
 }
@@ -70,7 +86,7 @@ func NewLogic() (*Logic, error) {
 		},
 	})
 
-	fields := graphql.Fields{
+	queryFields := graphql.Fields{
 		"_system": &graphql.Field{
 			Type:        systemField,
 			Description: "",
@@ -80,15 +96,26 @@ func NewLogic() (*Logic, error) {
 		},
 	}
 
-	rootQuery := graphql.ObjectConfig{Name: "Query", Fields: fields}
-	schemaConfig := graphql.SchemaConfig{Query: graphql.NewObject(rootQuery)}
+	mutationFields := graphql.Fields{
+		"createMask": &graphql.Field{
+			Type: graphql.String,
+			Resolve: func(p graphql.ResolveParams) (i interface{}, err error) {
+				return nil, nil
+			},
+		},
+	}
+
+	query := graphql.ObjectConfig{Name: "Query", Fields: queryFields}
+	mutation := graphql.ObjectConfig{Name: "Mutation", Fields: mutationFields}
+	schemaConfig := graphql.SchemaConfig{Query: graphql.NewObject(query), Mutation: graphql.NewObject(mutation)}
 	schema, err := graphql.NewSchema(schemaConfig)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Logic{
-		fields: fields,
-		schema: schema,
+		queryFields:    queryFields,
+		mutationFields: mutationFields,
+		schema:         schema,
 	}, nil
 }

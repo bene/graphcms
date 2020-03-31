@@ -44,6 +44,9 @@ func main() {
 		log.Println(err)
 	}
 
+	mux := http.NewServeMux()
+	mux.Handle()
+
 	http.Handle("/graph", h)
 	err = http.ListenAndServe(":4242", nil)
 	if err != nil {
